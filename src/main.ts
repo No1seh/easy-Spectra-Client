@@ -686,6 +686,11 @@ function nativeCheck() {
 }
 
 async function updateCheck(): Promise<boolean> {
+  // Los instaladores fijos (player/observer) NO comprueban actualizaciones:
+  // la comprobacion mira las releases de ValoSpectra y, si hay una mas nueva,
+  // fuerza a ir a valospectra.com y cierra la app — lo que sacaria al usuario
+  // de nuestro build hacia el cliente original. Se salta.
+  if (BUILD_PROFILE.mode !== "normal") return false;
   try {
     const versionData = (
       await axios.get("https://api.github.com/repos/ValoSpectra/Spectra-Client/releases")
