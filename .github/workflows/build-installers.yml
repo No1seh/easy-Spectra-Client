@@ -1,0 +1,46 @@
+name: Compilar instaladores Easy
+
+# Se dispara a mano (Actions -> Run workflow) o al empujar a la rama.
+on:
+  workflow_dispatch:
+  push:
+    branches: [easy-installers]
+
+jobs:
+  build:
+    runs-on: windows-latest # trae Python + VS Build Tools + Node
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Habilitar corepack (yarn 4)
+        run: corepack enable
+
+      - name: Instalar dependencias
+        run: yarn install --immutable
+
+      - name: Compilar instalador de JUGADOR
+        run: yarn build:player
+
+      - name: Apartar el instalador de jugador
+        run: |
+          mkdir instaladores
+          copy dist\*.exe instaladores\
+        shell: cmd
+
+      - name: Compilar instalador de OBSERVADOR
+        run: yarn build:observer
+
+      - name: Apartar el instalador de observador
+        run: copy dist\*.exe instaladores\
+        shell: cmd
+
+      - name: Subir instaladores
+        uses: actions/upload-artifact@v4
+        with:
+          name: easy-hud-instaladores
+          path: instaladores/*.exe
+          if-no-files-found: error
