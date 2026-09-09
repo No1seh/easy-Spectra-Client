@@ -62,10 +62,20 @@ export class ObserverinfoComponent implements OnInit, Validatable, AfterContentI
     protected http: HttpClient,
   ) {}
 
-  /** Perfil de build: en un instalador fijo trae la IP y oculta campos. */
-  protected profile = this.electron.getBuildProfile();
+  /** Perfil de build: en un instalador fijo trae la IP y oculta campos.
+      Se asigna en ngOnInit, no como campo: un inicializador de campo corre
+      antes de que Angular inyecte `electron` en el constructor. */
+  protected profile: ReturnType<ElectronService["getBuildProfile"]> = {
+    mode: "normal",
+    ingestIp: null,
+    lockConnection: false,
+    forceAutostart: false,
+    forceTray: false,
+    startHidden: false,
+  };
 
   ngOnInit(): void {
+    this.profile = this.electron.getBuildProfile();
     this.electron.playernameMessage.subscribe((name: string) => {
       this.data.name = name;
       this.changeDetectorRef.detectChanges();
