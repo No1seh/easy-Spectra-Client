@@ -27,6 +27,42 @@ export class ElectronService {
     return window.electronAPI;
   }
 
+  /**
+   * Perfil de build (normal / player / observer). Lo lee el proceso principal
+   * de src/buildProfile.ts. Con el fallback "normal", si por lo que sea no
+   * llega, la interfaz se comporta como el original.
+   */
+  public getBuildProfile(): {
+    mode: "normal" | "player" | "observer";
+    ingestIp: string | null;
+    lockConnection: boolean;
+    forceAutostart: boolean;
+    forceTray: boolean;
+    startHidden: boolean;
+  } {
+    try {
+      return (
+        this.api.getBuildProfile() || {
+          mode: "normal",
+          ingestIp: null,
+          lockConnection: false,
+          forceAutostart: false,
+          forceTray: false,
+          startHidden: false,
+        }
+      );
+    } catch {
+      return {
+        mode: "normal",
+        ingestIp: null,
+        lockConnection: false,
+        forceAutostart: false,
+        forceTray: false,
+        startHidden: false,
+      };
+    }
+  }
+
   public processInputs(
     ingestIp: any,
     groupId: any,

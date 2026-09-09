@@ -38,6 +38,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ),
   processAuxInputs: (ingestIp: any, name: any) =>
     ipcRenderer.send("process-aux-inputs", ingestIp, name),
+  // Perfil de build, sincrono: el renderer lo necesita antes de pintar los
+  // formularios para rellenar la IP fija y ocultar campos.
+  getBuildProfile: () => ipcRenderer.sendSync("get-build-profile"),
   processLog: (toLog: any) => ipcRenderer.send("process-log", toLog),
   setTraySetting: (setting: any) => ipcRenderer.send("set-tray-setting", setting),
   openExternalLink: (link: string) => ipcRenderer.send("open-external-link", link),

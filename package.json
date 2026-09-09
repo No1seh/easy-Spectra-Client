@@ -27,7 +27,9 @@
     "prepare": "husky install",
     "lint": "eslint src/ angular/src",
     "lint-fix": "eslint src/ angular/src --fix",
-    "format": "prettier src/ angular/src --write"
+    "format": "prettier src/ angular/src --write",
+    "build:player": "node scripts/set-profile.mjs player http://2.24.200.205:5100 && rimraf app && rimraf dist && yarn workspace angular build && npx tsc && ow-electron-builder --publish=never -c electron-builder-player.json && node scripts/set-profile.mjs normal",
+    "build:observer": "node scripts/set-profile.mjs observer http://2.24.200.205:5100 && rimraf app && rimraf dist && yarn workspace angular build && npx tsc && ow-electron-builder --publish=never -c electron-builder-observer.json && node scripts/set-profile.mjs normal"
   },
   "build": {
     "productName": "Spectra Client",

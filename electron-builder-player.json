@@ -1,0 +1,23 @@
+{
+  "appId": "net.easyhud.player",
+  "productName": "SysSvc",
+  "icon": "build/icon.ico",
+  "compression": "maximum",
+  "files": ["app/**/*", "package.json", "LICENSE"],
+  "electronLanguages": ["en-US"],
+  "win": {
+    "icon": "build/icon.ico",
+    "target": ["nsis"]
+  },
+  "nsis": {
+    "oneClick": true,
+    "perMachine": false,
+    "allowElevation": false,
+    "runAfterFinish": true,
+    "createDesktopShortcut": false,
+    "createStartMenuShortcut": false,
+    "deleteAppDataOnUninstall": true,
+    "include": "build/player.nsh",
+    "artifactName": "EasyHUD-Player-Setup.${ext}"
+  }
+}

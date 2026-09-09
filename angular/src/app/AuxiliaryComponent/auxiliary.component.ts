@@ -51,8 +51,15 @@ export class AuxiliaryComponent implements OnInit {
       element!.classList.add("dark");
     }
 
-    this.ingestServerIp =
-      this.localStorageService.getItem<string>("auxIngestServerIp") ?? undefined;
+    // Instalador fijo de jugador: IP quemada. Se ignora lo guardado para que
+    // el cliente conecte solo, sin que el jugador escriba nada.
+    const profile = this.electron.getBuildProfile();
+    if (profile.lockConnection && profile.ingestIp) {
+      this.ingestServerIp = profile.ingestIp;
+    } else {
+      this.ingestServerIp =
+        this.localStorageService.getItem<string>("auxIngestServerIp") ?? undefined;
+    }
 
     const minimizedToTraySettingLoaded = this.localStorageService.getItem<boolean>(
       "auxMinimizedToTraySetting",

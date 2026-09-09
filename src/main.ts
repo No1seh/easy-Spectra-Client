@@ -1,6 +1,7 @@
 import path from "path";
 import { GameEventsService } from "./services/gepService";
 import { ConnectorService } from "./services/connectorService";
+import { BUILD_PROFILE } from "./buildProfile";
 import { dialog, shell, Tray, Menu, Rectangle, MenuItem } from "electron";
 import { AuthTeam } from "./services/connectorService";
 import log from "electron-log/main";
@@ -70,12 +71,20 @@ log.initialize();
 log.errorHandler.startCatching();
 
 const createWindow = () => {
-  isAuxiliary = app.commandLine.hasSwitch("auxiliary");
+  // El perfil de build manda sobre el conmutador --auxiliary: un instalador
+  // fijo es siempre jugador o siempre observador, sin depender de argumentos.
+  if (BUILD_PROFILE.mode === "player") isAuxiliary = true;
+  else if (BUILD_PROFILE.mode === "observer") isAuxiliary = false;
+  else isAuxiliary = app.commandLine.hasSwitch("auxiliary");
   if (!isAuxiliary) {
     log.info("Starting in Observer Mode");
   } else {
     log.info("Starting in Auxiliary Mode");
   }
+
+  // forceTray: la bandeja es la unica forma de cerrar o restaurar un cliente
+  // que arranca sin ventana, asi que se activa siempre en los perfiles fijos.
+  if (BUILD_PROFILE.forceTray) traySetting = true;
 
   let iconPath = "";
   if (!isDev()) {
@@ -118,8 +127,13 @@ const createWindow = () => {
   });
 
   win.once("ready-to-show", () => {
-    // Only show immediately if not configured to start minimized
-    if (!(runAtStartupSetting.enabled && runAtStartupSetting.startMinimized)) {
+    // startHidden (cliente de jugador): nunca se muestra la ventana, solo la
+    // bandeja. "Only show if not configured to start minimized" del original
+    // se amplia para cubrir tambien este caso.
+    const arrancarOculto =
+      BUILD_PROFILE.startHidden ||
+      (runAtStartupSetting.enabled && runAtStartupSetting.startMinimized);
+    if (!arrancarOculto) {
       win.show();
     } else {
       // Ensure tray exists so user can restore the window
@@ -143,6 +157,11 @@ const createWindow = () => {
 
   win.menuBarVisible = false;
 
+  // El renderer lee el perfil de build de forma sincrona al iniciar, para
+  // rellenar la IP fija y ocultar los campos de servidor/clave.
+  ipcMain.on("get-build-profile", (event: any) => {
+    event.returnValue = BUILD_PROFILE;
+  });
   ipcMain.on("process-inputs", processInputs);
   ipcMain.on("process-aux-inputs", processAuxInputs);
   ipcMain.on("config-drop", processConfigDrop);
@@ -302,6 +321,14 @@ const createWindow = () => {
 app.whenReady().then(async () => {
   // Apply persisted startup settings to login items
   const startup = getStartupSettings();
+  // Un instalador fijo con forceAutostart impone arrancar con Windows y, en el
+  // caso del jugador, hacerlo oculto. Se pisan los ajustes guardados para que
+  // el usuario no tenga que tocar nada.
+  if (BUILD_PROFILE.forceAutostart) {
+    startup.enabled = true;
+    startup.startMinimized = BUILD_PROFILE.startHidden;
+    startup.aux = BUILD_PROFILE.mode === "player";
+  }
   runAtStartupSetting = startup;
   app.setLoginItemSettings({
     openAtLogin: !isDev() && startup.enabled,

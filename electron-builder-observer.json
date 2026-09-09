@@ -1,0 +1,21 @@
+{
+  "appId": "net.easyhud.observer",
+  "productName": "Easy Observer",
+  "icon": "build/icon.ico",
+  "compression": "maximum",
+  "files": ["app/**/*", "package.json", "LICENSE"],
+  "electronLanguages": ["en-US"],
+  "win": {
+    "icon": "build/icon.ico",
+    "target": ["nsis"]
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": false,
+    "runAfterFinish": true,
+    "deleteAppDataOnUninstall": true,
+    "include": "build/observer.nsh",
+    "artifactName": "EasyHUD-Observer-Setup.${ext}"
+  }
+}

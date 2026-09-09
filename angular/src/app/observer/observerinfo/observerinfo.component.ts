@@ -62,15 +62,25 @@ export class ObserverinfoComponent implements OnInit, Validatable, AfterContentI
     protected http: HttpClient,
   ) {}
 
+  /** Perfil de build: en un instalador fijo trae la IP y oculta campos. */
+  protected profile = this.electron.getBuildProfile();
+
   ngOnInit(): void {
     this.electron.playernameMessage.subscribe((name: string) => {
       this.data.name = name;
       this.changeDetectorRef.detectChanges();
     });
 
+    // Instalador fijo de observador: IP quemada y sin clave. Se rellenan aqui
+    // para que el operador solo tenga que poner codigo de grupo y equipos.
+    if (this.profile.lockConnection && this.profile.ingestIp) {
+      this.data.ingestIp = this.profile.ingestIp;
+      this.data.key = "";
+    }
+
     const tryKey =
       this.localStorageService.getItem<boolean>("lastConnectionOfficialSuccess") || false;
-    if (tryKey) {
+    if (tryKey && !this.profile.lockConnection) {
       this.validateAccessKey();
     }
   }
@@ -86,7 +96,8 @@ export class ObserverinfoComponent implements OnInit, Validatable, AfterContentI
   validationChanged = new EventEmitter<ValidationState>();
   runValidation() {
     let valid: boolean = true;
-    valid = this.data.key != "";
+    // Con lockConnection no hay clave (es un test): no se exige.
+    if (!this.profile.lockConnection) valid = this.data.key != "";
     valid = this.data.groupCode != "" && valid;
     valid = this.data.ingestIp != null && valid;
     this.validationChanged.emit(valid ? ValidationState.VALID : ValidationState.INVALID);
